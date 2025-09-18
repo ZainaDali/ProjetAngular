@@ -1,0 +1,29 @@
+import { Component, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { AuthService } from '../../features/auth/auth.service';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-accueil',
+  standalone: true,
+  imports: [CommonModule, RouterLink],
+  template: `
+    <div class="text-center p-8">
+      <h2 class="text-3xl font-bold text-green-600">Bienvenue sur MediNotes 🩺</h2>
+      <p class="mt-4 text-lg text-gray-700">
+        Cette application permet aux patients d'ajouter leurs symptômes du jour.
+      </p>
+
+      <!-- Bouton de suivi pour les médecins -->
+      <div *ngIf="auth.estMedecin()" class="mt-6">
+        <a routerLink="/suivi" 
+           class="inline-block px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+          Accéder au suivi des patients 👨‍⚕️
+        </a>
+      </div>
+    </div>
+  `,
+})
+export class AccueilComponent {
+  auth = inject(AuthService);
+}
