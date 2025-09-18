@@ -1,82 +1,108 @@
 import { Injectable, signal } from '@angular/core';
-import { Utilisateur, DemandeConnexion, DemandeInscription, Role } from './models';
+import {
+  Utilisateur,
+  UtilisateurPublic,
+  DemandeInscription,
+  DemandeConnexion,
+  Role
+} from './models';
 
-/**
- * Service d'authentification "mock" :
- * - stocke les utilisateurs en mémoire (et localStorage pour persistance)
- * - expose un signal utilisateurCourant pour les composants/guards
- * - méthodes: inscrire, connecter, deconnecter
- */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly STORAGE_CLE = 'medinotes.utilisateur';
-  private readonly STORAGE_UTILS = 'medinotes.utilisateurs';
+  private utilisateurs: Utilisateur[] = [];
 
-  // Utilisateur actuellement connecté (signal = réactif, simple et moderne)
-  utilisateurCourant = signal<Utilisateur | null>(null);
-
-  // "Base" utilisateurs en mémoire (mock)
-  private utilisateurs: Array<Utilisateur & { motDePasse: string }> = [
-    // Compte médecin par défaut pour accéder à l’admin
-    { id: 1, email: 'medecin@medinotes.fr', nom: 'Dr. Martin', role: 'medecin', motDePasse: 'Azerty123!' }
-  ];
+  utilisateurCourant = signal<UtilisateurPublic | null>(null);
 
   constructor() {
-    // Hydrate depuis le localStorage si présent
+    // Charger utilisateur courant depuis localStorage
     const brut = localStorage.getItem(this.STORAGE_CLE);
-    if (brut) this.utilisateurCourant.set(JSON.parse(brut));
+    if (brut) {
+      this.utilisateurCourant.set(JSON.parse(brut));
+    }
 
-    const brutUsers = localStorage.getItem(this.STORAGE_UTILS);
-    if (brutUsers) this.utilisateurs = JSON.parse(brutUsers);
+    // 👉 Compte admin par défaut (si aucun utilisateur n’existe)
+    if (!this.utilisateurs.find(u => u.role === 'medecin')) {
+      this.utilisateurs.push({
+        id: 1,
+        nom: 'Dr Admin',
+        email: 'admin@medinotes.com',
+        motDePasse: 'admin1234',
+        role: 'medecin'
+      });
+    }
   }
 
-  /** Inscription simple : ajoute un utilisateur (patient par défaut) */
-  inscrire(payload: DemandeInscription): Utilisateur {
-    const existe = this.utilisateurs.find(u => u.email === payload.email);
-    if (existe) throw new Error('Un utilisateur avec cet e-mail existe déjà.');
+  /** Inscription d’un utilisateur (patient ou médecin) */
+  inscrire(demande: DemandeInscription): UtilisateurPublic {
+    if (demande.motDePasse !== demande.confirmation) {
+      throw new Error('Les mots de passe ne correspondent pas');
+    }
 
-    const role: Role = payload.role ?? 'patient';
-    const nouvelId = this.utilisateurs.length ? Math.max(...this.utilisateurs.map(u => u.id)) + 1 : 1;
+    const existe = this.utilisateurs.find(u => u.email === demande.email);
+    if (existe) {
+      throw new Error('Un compte existe déjà avec cet email');
+    }
 
-    const u: Utilisateur & { motDePasse: string } = {
-      id: nouvelId,
-      email: payload.email.trim().toLowerCase(),
-      nom: payload.nom.trim(),
-      role,
-      motDePasse: payload.motDePasse
+    const nouvelUtilisateur: Utilisateur = {
+      id: Date.now(),
+      nom: demande.nom,
+      email: demande.email,
+      motDePasse: demande.motDePasse,
+      role: demande.role ?? 'patient'
     };
 
-    this.utilisateurs.push(u);
-    localStorage.setItem(this.STORAGE_UTILS, JSON.stringify(this.utilisateurs));
+    this.utilisateurs.push(nouvelUtilisateur);
 
-    // Retourne l’utilisateur sans le mot de passe
-    const { motDePasse, ...publicUser } = u;
+    const publicUser: UtilisateurPublic = {
+      id: nouvelUtilisateur.id,
+      nom: nouvelUtilisateur.nom,
+      email: nouvelUtilisateur.email,
+      role: nouvelUtilisateur.role
+    };
+
+    // Stocker comme utilisateur courant
+    this.utilisateurCourant.set(publicUser);
+    localStorage.setItem(this.STORAGE_CLE, JSON.stringify(publicUser));
+
     return publicUser;
   }
 
-  /** Connexion : vérifie email + mot de passe */
-  connecter(payload: DemandeConnexion): Utilisateur {
-    const email = payload.email.trim().toLowerCase();
-    const user = this.utilisateurs.find(u => u.email === email && u.motDePasse === payload.motDePasse);
-    if (!user) throw new Error('Identifiants invalides.');
+  /** Connexion d’un utilisateur existant */
+  connecter(demande: DemandeConnexion): UtilisateurPublic {
+    const user = this.utilisateurs.find(
+      u => u.email === demande.email && u.motDePasse === demande.motDePasse
+    );
 
-    const { motDePasse, ...publicUser } = user;
+    if (!user) {
+      throw new Error('Identifiants invalides');
+    }
+
+    const publicUser: UtilisateurPublic = {
+      id: user.id,
+      nom: user.nom,
+      email: user.email,
+      role: user.role
+    };
+
     this.utilisateurCourant.set(publicUser);
     localStorage.setItem(this.STORAGE_CLE, JSON.stringify(publicUser));
+
     return publicUser;
   }
 
   /** Déconnexion */
-  deconnecter(): void {
+  deconnecter() {
     this.utilisateurCourant.set(null);
     localStorage.removeItem(this.STORAGE_CLE);
   }
 
-  /** Outil pratique pour les guards */
+  /** Vérifie si l’utilisateur est connecté */
   estConnecte(): boolean {
-    return !!this.utilisateurCourant();
+    return this.utilisateurCourant() !== null;
   }
 
+  /** Vérifie si l’utilisateur est médecin/admin */
   estMedecin(): boolean {
     return this.utilisateurCourant()?.role === 'medecin';
   }

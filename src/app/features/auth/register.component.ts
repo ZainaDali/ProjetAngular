@@ -42,6 +42,7 @@ import { Role } from './models';
             <option value="patient">Patient</option>
             <option value="medecin">Médecin (admin)</option>
           </select>
+
         </div>
 
         <!-- Mot de passe -->
@@ -109,10 +110,10 @@ export class RegisterComponent {
 
       const user = this.auth.inscrire({ email, nom, role, motDePasse, confirmation });
 
-      this.succes.set(`Compte créé pour ${user.nom}. Vous pouvez vous connecter.`);
+      this.succes.set(`Compte créé pour ${user.nom}. Redirection vers l'accueil...`);
 
-      // Redirection après une courte pause (UX sympa)
-      setTimeout(() => this.router.navigate(['/auth/connexion']), 1000);
+      // Redirection vers l'accueil après une courte pause
+      setTimeout(() => this.router.navigate(['/accueil']), 1000);
 
     } catch (e: any) {
       this.erreur.set(e?.message ?? 'Erreur lors de la création du compte.');
