@@ -6,6 +6,7 @@ import { AuthService } from '../auth/auth.service';
 import { GravitePipe } from '../../shared/pipes/gravite.pipe';
 import { HighlightDirective } from '../../shared/directives/highlight.directive';
 import { NotificationsService } from '../../core/notifications/notifications.service';
+import { descriptionValidator } from '../../shared/validators/description.validator';
 
 @Component({
   selector: 'app-symptomes-patient',
@@ -37,6 +38,16 @@ import { NotificationsService } from '../../core/notifications/notifications.ser
           <label class="block text-sm font-medium mb-1">Description</label>
           <input type="text" formControlName="description"
                  class="w-full border px-3 py-2 rounded" />
+          <!-- Gestion des erreurs en temps réel -->
+          <div class="text-red-600 text-sm mt-1"
+               *ngIf="form.controls.description.touched && form.controls.description.errors">
+            <span *ngIf="form.controls.description.errors['required']">
+              La description est obligatoire.
+            </span>
+            <span *ngIf="form.controls.description.errors['tropCourt']">
+              La description doit contenir au moins 5 caractères.
+            </span>
+          </div>
         </div>
 
         <div>
@@ -80,7 +91,7 @@ export class SymptomesPatientComponent {
   userId = this.auth.utilisateurCourant()?.id ?? 0;
 
   form = this.fb.group({
-    description: ['', Validators.required],
+    description: ['', [Validators.required, descriptionValidator()]],
     gravite: ['leger', Validators.required]
   });
 

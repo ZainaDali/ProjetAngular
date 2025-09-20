@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, effect } from '@angular/core';
 import {
   Utilisateur,
   UtilisateurPublic,
@@ -12,6 +12,7 @@ export class AuthService {
   private readonly STORAGE_CLE = 'medinotes.utilisateur';
   private utilisateurs: Utilisateur[] = [];
 
+  // Signal pour l’utilisateur courant
   utilisateurCourant = signal<UtilisateurPublic | null>(null);
 
   constructor() {
@@ -31,6 +32,16 @@ export class AuthService {
         role: 'medecin'
       });
     }
+
+    // ✅ Effect : persistance automatique de la session
+    effect(() => {
+      const user = this.utilisateurCourant();
+      if (user) {
+        localStorage.setItem(this.STORAGE_CLE, JSON.stringify(user));
+      } else {
+        localStorage.removeItem(this.STORAGE_CLE);
+      }
+    });
   }
 
   /** Inscription d’un utilisateur (patient ou médecin) */
@@ -61,10 +72,7 @@ export class AuthService {
       role: nouvelUtilisateur.role
     };
 
-    // Stocker comme utilisateur courant
     this.utilisateurCourant.set(publicUser);
-    localStorage.setItem(this.STORAGE_CLE, JSON.stringify(publicUser));
-
     return publicUser;
   }
 
@@ -86,15 +94,12 @@ export class AuthService {
     };
 
     this.utilisateurCourant.set(publicUser);
-    localStorage.setItem(this.STORAGE_CLE, JSON.stringify(publicUser));
-
     return publicUser;
   }
 
   /** Déconnexion */
   deconnecter() {
     this.utilisateurCourant.set(null);
-    localStorage.removeItem(this.STORAGE_CLE);
   }
 
   /** Vérifie si l’utilisateur est connecté */
