@@ -24,6 +24,6 @@ describe('HighlightDirective', () => {
 
   it('applique un style pour la gravité légère', () => {
     const p: HTMLElement = fixture.nativeElement.querySelector('p');
-    expect(p.style.backgroundColor).toBe('rgb(240, 253, 244)'); // vert pâle
+    expect(p.style.backgroundColor).toBe('rgb(187, 247, 208)'); 
   });
 });

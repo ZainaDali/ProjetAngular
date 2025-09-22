@@ -16,6 +16,8 @@ describe('GravitePipe', () => {
   });
 
   it('retourne la valeur brute si inconnue', () => {
-    expect(pipe.transform('autre' as any)).toBe('autre');
-  });
+  const valeurInconnue = 'autre' as unknown as 'leger' | 'modere' | 'grave';
+  expect(pipe.transform(valeurInconnue)).toBe('autre');
+});
+
 });

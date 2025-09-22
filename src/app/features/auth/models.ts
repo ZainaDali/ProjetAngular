@@ -4,7 +4,7 @@ export interface Utilisateur {
   id: number;
   nom: string;
   email: string;
-  motDePasse: string; // stocké seulement côté service
+  motDePasse: string; // stored only on service side
   role: Role;
 }
 

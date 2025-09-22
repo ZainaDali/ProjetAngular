@@ -1,7 +1,7 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
 /**
- * Vérifie que le champ motDePasse et confirmation sont identiques
+ * Checks that the password and confirmation fields are identical
  */
 export function motDePasseValidator(mdpCtrl: string, confirmCtrl: string): ValidatorFn {
   return (formGroup: AbstractControl): ValidationErrors | null => {

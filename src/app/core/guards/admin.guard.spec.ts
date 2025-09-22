@@ -26,7 +26,7 @@ describe('adminGuard', () => {
       ],
     });
 
-    // ✅ Création de faux route et state (même si non utilisés dans ton guard)
+    // Create fake route and state (even if not used in your guard)
     mockRoute = {} as ActivatedRouteSnapshot;
     mockState = { url: '/test' } as RouterStateSnapshot;
   });

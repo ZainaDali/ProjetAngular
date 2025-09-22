@@ -1,66 +1,97 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ReactiveFormsModule } from '@angular/forms';
+import { By } from '@angular/platform-browser';
+
 import { SymptomesPatientComponent } from './symptomes-patient.component';
 import { SymptomesService } from './symptomes.service';
 import { AuthService } from '../auth/auth.service';
 import { NotificationsService } from '../../core/notifications/notifications.service';
-import { By } from '@angular/platform-browser';
 
-describe('SymptomesPatientComponent (intégration)', () => {
+describe('SymptomesPatientComponent (Integration)', () => {
   let fixture: ComponentFixture<SymptomesPatientComponent>;
-  let authServiceSpy: jasmine.SpyObj<AuthService>;
-  let notifSpy: jasmine.SpyObj<NotificationsService>;
+  let component: SymptomesPatientComponent;
+  let symptomesService: SymptomesService;
 
-  beforeEach(() => {
-    authServiceSpy = jasmine.createSpyObj<AuthService>('AuthService', ['utilisateurCourant']);
-    notifSpy = jasmine.createSpyObj<NotificationsService>('NotificationsService', ['succes', 'info']);
-
-    // Simuler un patient connecté
-    authServiceSpy.utilisateurCourant.and.returnValue({ id: 1, nom: 'Alice', email: 'a@test.com', role: 'patient' });
-
-    TestBed.configureTestingModule({
-      imports: [SymptomesPatientComponent],
-      providers: [
-        SymptomesService, // vrai service (il utilise un signal interne)
-        { provide: AuthService, useValue: authServiceSpy },
-        { provide: NotificationsService, useValue: notifSpy },
-      ],
-    });
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [SymptomesPatientComponent, ReactiveFormsModule],
+      providers: [SymptomesService, AuthService, NotificationsService],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(SymptomesPatientComponent);
+    component = fixture.componentInstance;
+    symptomesService = TestBed.inject(SymptomesService);
+
+    // Clean data
+    symptomesService.symptomes.set([]);
+
+    // Simulate connected user
+    spyOn(component.auth, 'utilisateurCourant').and.returnValue({
+      id: 1,
+      nom: 'Patient Test',
+      email: 'test@test.com',
+      role: 'patient',
+    });
+
     fixture.detectChanges();
   });
 
-  it('ajoute et supprime un symptôme', () => {
-    const input: HTMLInputElement = fixture.debugElement.query(By.css('input[formControlName=description]')).nativeElement;
-    const select: HTMLSelectElement = fixture.debugElement.query(By.css('select[formControlName=gravite]')).nativeElement;
-    const form = fixture.debugElement.query(By.css('form')).nativeElement as HTMLFormElement;
-
-    // Remplir le formulaire
-    input.value = 'Mal de tête';
-    input.dispatchEvent(new Event('input'));
-    select.value = 'grave';
-    select.dispatchEvent(new Event('change'));
+  it('affiche une erreur si description est vide', () => {
+    component.form.controls['description'].setValue('');
+    component.form.controls['description'].markAsTouched();
     fixture.detectChanges();
 
-    // Soumettre
-    form.dispatchEvent(new Event('submit'));
+    const erreur = fixture.debugElement.query(By.css('.text-red-600'));
+    expect(erreur.nativeElement.textContent).toContain('La description est obligatoire.');
+  });
+
+  it('ajoute un symptôme et l’affiche dans la liste', () => {
+    component.form.setValue({ description: 'Mal de tête', gravite: 'leger' });
+    component.soumettre();
     fixture.detectChanges();
 
-    // Vérifier que le symptôme est dans la liste
-    let items = fixture.debugElement.queryAll(By.css('ul li'));
+    const items = fixture.debugElement.queryAll(By.css('ul li'));
     expect(items.length).toBe(1);
     expect(items[0].nativeElement.textContent).toContain('Mal de tête');
-    expect(items[0].nativeElement.textContent).toContain('Grave');
-    expect(notifSpy.succes).toHaveBeenCalledWith('Symptôme ajouté.');
+  });
 
-    // Cliquer sur Supprimer
-    const btnSuppr = items[0].query(By.css('button')).nativeElement as HTMLButtonElement;
-    btnSuppr.click();
+  it('supprime un symptôme via la méthode supprimer()', () => {
+    // Add a symptom
+    component.form.setValue({ description: 'Douleur au dos', gravite: 'modere' });
+    component.soumettre();
     fixture.detectChanges();
 
-    // Vérifier que la liste est vide
+    let items = fixture.debugElement.queryAll(By.css('ul li'));
+    expect(items.length).toBe(1);
+
+    // Delete directly via component method
+    const symptome = symptomesService.symptomes()[0];
+    component.supprimer(symptome.id);
+    fixture.detectChanges();
+
     items = fixture.debugElement.queryAll(By.css('ul li'));
     expect(items.length).toBe(0);
-    expect(notifSpy.info).toHaveBeenCalledWith('Symptôme supprimé.');
+  });
+
+  it('modifie un symptôme existant via editer() + soumettre()', () => {
+    // Add a symptom
+    component.form.setValue({ description: 'Fièvre légère', gravite: 'leger' });
+    component.soumettre();
+    fixture.detectChanges();
+
+    let items = fixture.debugElement.queryAll(By.css('ul li'));
+    expect(items[0].nativeElement.textContent).toContain('Fièvre légère');
+
+    // Switch to edit mode
+    const symptome = symptomesService.symptomes()[0];
+    component.editer(symptome);
+
+    // Modifier le formulaire
+    component.form.setValue({ description: 'Fièvre modérée', gravite: 'modere' });
+    component.soumettre();
+    fixture.detectChanges();
+
+    items = fixture.debugElement.queryAll(By.css('ul li'));
+    expect(items[0].nativeElement.textContent).toContain('Fièvre modérée');
   });
 });

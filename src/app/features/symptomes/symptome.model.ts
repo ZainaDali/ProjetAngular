@@ -1,9 +1,9 @@
-// Modèle de données pour un symptôme
+// Data model for a symptom
 export interface Symptome {
-  id: number;                       // identifiant unique
-  patientId: number;                 // identifiant du patient
-  patientNom: string;                // nom du patient (affiché côté médecin)
-  date: string;                      // ISO string de la date
-  description: string;               // description libre
-  gravite: 'leger' | 'modere' | 'grave'; // niveau de gravité
+  id: number;                       // unique identifier
+  patientId: number;                 // patient identifier
+  patientNom: string;                // patient name (displayed on doctor side)
+  date: string;                      // ISO date string
+  description: string;               // free description
+  gravite: 'leger' | 'modere' | 'grave'; // severity level
 }

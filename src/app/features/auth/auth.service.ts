@@ -3,8 +3,7 @@ import {
   Utilisateur,
   UtilisateurPublic,
   DemandeInscription,
-  DemandeConnexion,
-  Role
+  DemandeConnexion
 } from './models';
 
 @Injectable({ providedIn: 'root' })
@@ -12,17 +11,17 @@ export class AuthService {
   private readonly STORAGE_CLE = 'medinotes.utilisateur';
   private utilisateurs: Utilisateur[] = [];
 
-  // Signal pour l’utilisateur courant
+  // Signal for current user
   utilisateurCourant = signal<UtilisateurPublic | null>(null);
 
   constructor() {
-    // Charger utilisateur courant depuis localStorage
+    // Load current user from localStorage
     const brut = localStorage.getItem(this.STORAGE_CLE);
     if (brut) {
       this.utilisateurCourant.set(JSON.parse(brut));
     }
 
-    // 👉 Compte admin par défaut (si aucun utilisateur n’existe)
+    // Default admin account (if no users exist)
     if (!this.utilisateurs.find(u => u.role === 'medecin')) {
       this.utilisateurs.push({
         id: 1,
@@ -33,7 +32,7 @@ export class AuthService {
       });
     }
 
-    // ✅ Effect : persistance automatique de la session
+    // Effect: automatic session persistence
     effect(() => {
       const user = this.utilisateurCourant();
       if (user) {
@@ -44,7 +43,7 @@ export class AuthService {
     });
   }
 
-  /** Inscription d’un utilisateur (patient ou médecin) */
+  /** Register a user (patient or doctor) */
   inscrire(demande: DemandeInscription): UtilisateurPublic {
     if (demande.motDePasse !== demande.confirmation) {
       throw new Error('Les mots de passe ne correspondent pas');
@@ -76,7 +75,7 @@ export class AuthService {
     return publicUser;
   }
 
-  /** Connexion d’un utilisateur existant */
+  /** Login for existing user */
   connecter(demande: DemandeConnexion): UtilisateurPublic {
     const user = this.utilisateurs.find(
       u => u.email === demande.email && u.motDePasse === demande.motDePasse
@@ -97,17 +96,17 @@ export class AuthService {
     return publicUser;
   }
 
-  /** Déconnexion */
+  /** Logout */
   deconnecter() {
     this.utilisateurCourant.set(null);
   }
 
-  /** Vérifie si l’utilisateur est connecté */
+  /** Check if user is logged in */
   estConnecte(): boolean {
     return this.utilisateurCourant() !== null;
   }
 
-  /** Vérifie si l’utilisateur est médecin/admin */
+  /** Check if user is doctor/admin */
   estMedecin(): boolean {
     return this.utilisateurCourant()?.role === 'medecin';
   }

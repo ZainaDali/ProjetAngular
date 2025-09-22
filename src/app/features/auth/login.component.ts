@@ -15,7 +15,7 @@ import { AuthService } from './auth.service';
       <form [formGroup]="form" (ngSubmit)="soumettre()" class="space-y-4">
         <!-- Champ e-mail -->
         <div>
-          <label class="block text-sm font-medium mb-1">E-mail</label>
+          <label for="email" class="block text-sm font-medium mb-1">E-mail</label>
           <input type="email" formControlName="email" class="w-full border px-3 py-2 rounded" />
           <p *ngIf="form.get('email')?.invalid && form.get('email')?.touched" class="text-red-600 text-sm">
             E-mail invalide
@@ -24,7 +24,7 @@ import { AuthService } from './auth.service';
 
         <!-- Champ mot de passe -->
         <div>
-          <label class="block text-sm font-medium mb-1">Mot de passe</label>
+          <label for="mdp" class="block text-sm font-medium mb-1">Mot de passe</label>
           <input type="password" formControlName="motDePasse" class="w-full border px-3 py-2 rounded" />
           <p *ngIf="form.get('motDePasse')?.invalid && form.get('motDePasse')?.touched" class="text-red-600 text-sm">
             Mot de passe requis
@@ -80,8 +80,12 @@ export class LoginComponent {
       const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/accueil';
       this.router.navigateByUrl(returnUrl);
 
-    } catch (e: any) {
-      this.erreur.set(e?.message ?? 'Erreur de connexion.');
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        this.erreur.set(e.message);
+      } else {
+        this.erreur.set('Erreur de connexion.');
+      }
     } finally {
       this.chargement.set(false);
     }

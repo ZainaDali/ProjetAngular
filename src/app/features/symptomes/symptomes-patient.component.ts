@@ -3,20 +3,23 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { SymptomesService } from './symptomes.service';
 import { AuthService } from '../auth/auth.service';
-import { GravitePipe } from '../../shared/pipes/gravite.pipe';
-import { HighlightDirective } from '../../shared/directives/highlight.directive';
 import { NotificationsService } from '../../core/notifications/notifications.service';
 import { descriptionValidator } from '../../shared/validators/description.validator';
+import { SymptomeItemComponent } from './symptome-item.component';
 
 @Component({
   selector: 'app-symptomes-patient',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, GravitePipe, HighlightDirective],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    SymptomeItemComponent
+  ],
   template: `
     <div class="max-w-xl mx-auto mt-6 p-6 bg-white shadow rounded">
       <h2 class="text-xl font-bold mb-4">Mes symptômes</h2>
 
-      <!-- Stats rapides -->
+      <!-- Quick stats -->
       <div class="grid grid-cols-3 gap-3 mb-4 text-sm">
         <div class="bg-green-50 border border-green-200 p-3 rounded">
           <div class="font-semibold">Légers</div>
@@ -32,13 +35,12 @@ import { descriptionValidator } from '../../shared/validators/description.valida
         </div>
       </div>
 
-      <!-- Formulaire d’ajout -->
-      <form [formGroup]="form" (ngSubmit)="ajouter()" class="space-y-4">
+      <!-- Add/edit form -->
+      <form [formGroup]="form" (ngSubmit)="soumettre()" class="space-y-4">
         <div>
-          <label class="block text-sm font-medium mb-1">Description</label>
+          <label for="description" class="block text-sm font-medium mb-1">Description</label>
           <input type="text" formControlName="description"
                  class="w-full border px-3 py-2 rounded" />
-          <!-- Gestion des erreurs en temps réel -->
           <div class="text-red-600 text-sm mt-1"
                *ngIf="form.controls.description.touched && form.controls.description.errors">
             <span *ngIf="form.controls.description.errors['required']">
@@ -51,7 +53,7 @@ import { descriptionValidator } from '../../shared/validators/description.valida
         </div>
 
         <div>
-          <label class="block text-sm font-medium mb-1">Gravité</label>
+          <label for="gravite" class="block text-sm font-medium mb-1">Gravité</label>
           <select formControlName="gravite" class="w-full border px-3 py-2 rounded">
             <option value="leger">Léger</option>
             <option value="modere">Modéré</option>
@@ -61,23 +63,18 @@ import { descriptionValidator } from '../../shared/validators/description.valida
 
         <button type="submit" [disabled]="form.invalid"
                 class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-          Ajouter
+          {{ symptomeEnEdition ? 'Mettre à jour' : 'Ajouter' }}
         </button>
       </form>
 
-      <!-- Liste -->
+      <!-- List -->
       <ul class="mt-6 space-y-3">
-        <li *ngFor="let s of mesSymptomes(); trackBy: trackById"
-            class="border p-3 rounded"
-            [appHighlight]="s.gravite">
-          <div class="text-sm text-gray-600">{{ s.date | date:'short' }}</div>
-          <div class="font-medium">
-            {{ s.description }} — <span>{{ s.gravite | graviteLabel }}</span>
-          </div>
-          <button class="mt-2 text-red-600 hover:underline" (click)="supprimer(s.id)">
-            Supprimer
-          </button>
-        </li>
+        <app-symptome-item
+          *ngFor="let s of mesSymptomes(); trackBy: trackById"
+          [symptome]="s"
+          (supprimer)="supprimer($event)"
+          (editer)="editer($event)">
+        </app-symptome-item>
       </ul>
     </div>
   `
@@ -89,13 +86,13 @@ export class SymptomesPatientComponent {
   notif = inject(NotificationsService);
 
   userId = this.auth.utilisateurCourant()?.id ?? 0;
+  symptomeEnEdition: { id: number } | null = null;
 
   form = this.fb.group({
     description: ['', [Validators.required, descriptionValidator()]],
     gravite: ['leger', Validators.required]
   });
 
-  // ✅ Signals dérivés
   mesSymptomes = computed(() =>
     this.symptomesService.symptomes().filter(s => s.patientId === this.userId)
   );
@@ -106,20 +103,39 @@ export class SymptomesPatientComponent {
     return base;
   });
 
-  ajouter() {
+  soumettre() {
     if (this.form.invalid || !this.auth.utilisateurCourant()) return;
 
-    this.symptomesService.ajouter({
-      id: Date.now(),
-      patientId: this.userId,
-      patientNom: this.auth.utilisateurCourant()!.nom,
-      date: new Date().toISOString(),
-      description: this.form.value.description!,
-      gravite: this.form.value.gravite! as 'leger' | 'modere' | 'grave'
-    });
+    if (this.symptomeEnEdition) {
+      // Update
+      this.symptomesService.modifier(this.symptomeEnEdition.id, {
+        description: this.form.value.description!,
+        gravite: this.form.value.gravite! as 'leger' | 'modere' | 'grave'
+      });
+      this.notif.succes('Symptôme mis à jour.');
+      this.symptomeEnEdition = null;
+    } else {
+      // Add
+      this.symptomesService.ajouter({
+        id: Date.now(),
+        patientId: this.userId,
+        patientNom: this.auth.utilisateurCourant()!.nom,
+        date: new Date().toISOString(),
+        description: this.form.value.description!,
+        gravite: this.form.value.gravite! as 'leger' | 'modere' | 'grave'
+      });
+      this.notif.succes('Symptôme ajouté.');
+    }
 
     this.form.reset({ gravite: 'leger' });
-    this.notif.succes('Symptôme ajouté.');
+  }
+
+  editer(symptome: { id: number; description: string; gravite: 'leger' | 'modere' | 'grave' }) {
+    this.symptomeEnEdition = symptome;
+    this.form.patchValue({
+      description: symptome.description,
+      gravite: symptome.gravite
+    });
   }
 
   supprimer(id: number) {

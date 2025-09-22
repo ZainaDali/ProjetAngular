@@ -7,24 +7,24 @@ import { SymptomesMedecinComponent } from './features/symptomes/symptomes-medeci
 import { SymptomesAdminDetailComponent } from './features/symptomes/symptomes-admin-detail.component';
 
 export const routes: Routes = [
-  // Redirection par défaut
+  // Default redirection
   { path: '', redirectTo: 'accueil', pathMatch: 'full' },
 
-  // Page accueil (accessible uniquement connecté)
+  // Home page (accessible only when connected)
   { path: 'accueil', component: AccueilComponent, canActivate: [authGuard] },
 
-  // Page symptômes (patient connecté)
+  // Symptoms page (connected patient)
   { path: 'symptomes', component: SymptomesPatientComponent, canActivate: [authGuard] },
 
-  // Lazy load Auth (connexion / inscription)
+  // Lazy load Auth (login / registration)
   { path: 'auth', loadChildren: () => import('./features/auth/auth.routes').then(m => m.AUTH_ROUTES) },
 
-  // Espace médecin (liste globale des symptômes)
+  // Doctor space (global symptoms list)
   { path: 'suivi', component: SymptomesMedecinComponent, canActivate: [adminGuard] },
 
-  // Espace médecin → détail par patient
+  // Doctor space → detail by patient
   { path: 'suivi/patient/:id', component: SymptomesAdminDetailComponent, canActivate: [adminGuard] },
 
-  // Route fallback
+  // Fallback route
   { path: '**', redirectTo: 'accueil' }
 ];

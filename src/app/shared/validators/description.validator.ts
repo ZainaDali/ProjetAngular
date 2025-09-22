@@ -1,7 +1,7 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
 /**
- * Vérifie que la description contient au moins 5 caractères.
+ * Checks that the description contains at least 5 characters.
  */
 export function descriptionValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {

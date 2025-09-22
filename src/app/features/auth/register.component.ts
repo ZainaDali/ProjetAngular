@@ -14,62 +14,62 @@ import { motDePasseValidator } from '../../shared/validators/motdepasse.validato
       <h2 class="text-xl font-bold mb-4">Créer un compte</h2>
 
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
-        <!-- Nom -->
+        <!-- Name -->
         <div>
-          <label class="block text-sm font-medium mb-1">Nom</label>
+          <label for="nom" class="block text-sm font-medium mb-1">Nom</label>
           <input type="text" formControlName="nom" class="w-full border px-3 py-2 rounded" />
           <div class="text-red-600 text-sm mt-1"
                *ngIf="form.controls.nom.touched && form.controls.nom.errors?.['required']">
-            Le nom est obligatoire.
+            Name is required.
           </div>
         </div>
 
         <!-- Email -->
         <div>
-          <label class="block text-sm font-medium mb-1">Email</label>
+          <label for="email" class="block text-sm font-medium mb-1">Email</label>
           <input type="email" formControlName="email" class="w-full border px-3 py-2 rounded" />
           <div class="text-red-600 text-sm mt-1"
                *ngIf="form.controls.email.touched && form.controls.email.errors">
-            <span *ngIf="form.controls.email.errors['required']">L’email est obligatoire.</span>
-            <span *ngIf="form.controls.email.errors['email']">Email invalide.</span>
+            <span *ngIf="form.controls.email.errors['required']">Email is required.</span>
+            <span *ngIf="form.controls.email.errors['email']">Invalid email.</span>
           </div>
         </div>
 
-        <!-- Mot de passe -->
+        <!-- Password -->
         <div>
-          <label class="block text-sm font-medium mb-1">Mot de passe</label>
+          <label for="mdp" class="block text-sm font-medium mb-1">Mot de passe</label>
           <input type="password" formControlName="motDePasse" class="w-full border px-3 py-2 rounded" />
           <div class="text-red-600 text-sm mt-1"
                *ngIf="form.controls.motDePasse.touched && form.controls.motDePasse.errors">
-            <span *ngIf="form.controls.motDePasse.errors['required']">Le mot de passe est obligatoire.</span>
-            <span *ngIf="form.controls.motDePasse.errors['minlength']">Minimum 6 caractères.</span>
+            <span *ngIf="form.controls.motDePasse.errors['required']">Password is required.</span>
+            <span *ngIf="form.controls.motDePasse.errors['minlength']">Minimum 6 characters.</span>
           </div>
         </div>
 
         <!-- Confirmation -->
         <div>
-          <label class="block text-sm font-medium mb-1">Confirmer le mot de passe</label>
+          <label for="confmdp" class="block text-sm font-medium mb-1">Confirmer le mot de passe</label>
           <input type="password" formControlName="confirmation" class="w-full border px-3 py-2 rounded" />
           <div class="text-red-600 text-sm mt-1"
                *ngIf="form.hasError('motDePasseMismatch') && form.controls.confirmation.touched">
-            Les mots de passe ne correspondent pas.
+            Passwords do not match.
           </div>
         </div>
 
-        <!-- Rôle -->
+        <!-- Role -->
         <div>
-          <label class="block text-sm font-medium mb-1">Rôle</label>
+          <label for="role" class="block text-sm font-medium mb-1">Rôle</label>
           <select formControlName="role" class="w-full border px-3 py-2 rounded">
             <option value="patient">Patient</option>
             <option value="medecin">Médecin</option>
           </select>
         </div>
 
-        <!-- Bouton -->
+        <!-- Button -->
         <button type="submit"
                 [disabled]="form.invalid"
                 class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          Créer un compte
+          Create account
         </button>
       </form>
     </div>
@@ -88,7 +88,7 @@ export class RegisterComponent {
       confirmation: ['', Validators.required],
       role: ['patient', Validators.required]
     },
-    { validators: motDePasseValidator('motDePasse', 'confirmation') } // ✅ validator custom
+    { validators: motDePasseValidator('motDePasse', 'confirmation') }
   );
 
   onSubmit() {
@@ -98,11 +98,11 @@ export class RegisterComponent {
     nom: this.form.value.nom!,
     email: this.form.value.email!,
     motDePasse: this.form.value.motDePasse!,
-    confirmation: this.form.value.confirmation!, // ✅ ajouté
+    confirmation: this.form.value.confirmation!,
     role: this.form.value.role as 'patient' | 'medecin'
   });
 
-  this.router.navigate(['/auth/login']);
+  this.router.navigate(['/auth/connexion']);
 }
 
 }

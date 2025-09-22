@@ -5,7 +5,7 @@ import { Pipe, PipeTransform } from '@angular/core';
   standalone: true,
 })
 export class GravitePipe implements PipeTransform {
-  // Transforme la valeur interne en libellé humain
+  // Transform internal value to human-readable label
   transform(v: 'leger' | 'modere' | 'grave'): string {
     switch (v) {
       case 'leger': return 'Léger';
