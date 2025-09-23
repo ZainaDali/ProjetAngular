@@ -1,0 +1,35 @@
+image: node:20
+
+stages:
+  - build
+  - deploy
+
+cache:
+  paths:
+    - node_modules/
+
+build:
+  stage: build
+  script:
+    - npm ci
+    # Build Angular en mode production avec base-href pour GitLab Pages
+    - npx ng build --configuration=production --base-href "/ProjetAngular/"
+  artifacts:
+    paths:
+      - dist/
+  only:
+    - main   # ou master selon ta branche par défaut
+
+pages:
+  stage: deploy
+  script:
+    - mkdir public
+    # ⚠️ Adapter le nom du dossier Angular généré dans dist/
+    - cp -r dist/ProjetAngular/* public/
+    # Pour gérer le routage Angular (SPA)
+    - cp public/index.html public/404.html
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
