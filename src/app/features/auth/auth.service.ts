@@ -1,4 +1,5 @@
-import { Injectable, signal, effect } from '@angular/core';
+import { Injectable, signal, effect, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import {
   Utilisateur,
   UtilisateurPublic,
@@ -9,20 +10,32 @@ import {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly STORAGE_CLE = 'medinotes.utilisateur';
+  private readonly USERS_STORAGE_KEY = 'medinotes.utilisateurs';
   private utilisateurs: Utilisateur[] = [];
 
   // Signal for current user
   utilisateurCourant = signal<UtilisateurPublic | null>(null);
+  // Router injected as a class property for navigation
+  private router = inject(Router);
 
   constructor() {
-    // Load current user from localStorage
+    
     const brut = localStorage.getItem(this.STORAGE_CLE);
     if (brut) {
       this.utilisateurCourant.set(JSON.parse(brut));
     }
 
-    // Default admin account (if no users exist)
-    if (!this.utilisateurs.find(u => u.role === 'medecin')) {
+    // Load users from localStorage (and seed default admin if empty)
+    const savedUsers = localStorage.getItem(this.USERS_STORAGE_KEY);
+    if (savedUsers) {
+      try {
+        this.utilisateurs = JSON.parse(savedUsers) as Utilisateur[];
+      } catch {
+        this.utilisateurs = [];
+      }
+    }
+
+    if (this.utilisateurs.length === 0) {
       this.utilisateurs.push({
         id: 1,
         nom: 'Dr Admin',
@@ -30,6 +43,7 @@ export class AuthService {
         motDePasse: 'admin1234',
         role: 'medecin'
       });
+      localStorage.setItem(this.USERS_STORAGE_KEY, JSON.stringify(this.utilisateurs));
     }
 
     // Effect: automatic session persistence
@@ -63,6 +77,7 @@ export class AuthService {
     };
 
     this.utilisateurs.push(nouvelUtilisateur);
+    localStorage.setItem(this.USERS_STORAGE_KEY, JSON.stringify(this.utilisateurs));
 
     const publicUser: UtilisateurPublic = {
       id: nouvelUtilisateur.id,
@@ -99,6 +114,9 @@ export class AuthService {
   /** Logout */
   deconnecter() {
     this.utilisateurCourant.set(null);
+    // Redirect to login page after logout
+    
+    this.router.navigate(['/auth/connexion'], { replaceUrl: true });
   }
 
   /** Check if user is logged in */
