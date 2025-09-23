@@ -1,59 +1,112 @@
-# Medinotes
+# MediNotes
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.15.
+Application de suivi des symptômes pour patients et médecins, développée avec Angular (standalone components, Signals) et Tailwind CSS.
 
-## Development server
+## 🚀 Démarrage rapide
 
-To start a local development server, run:
-
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Prérequis: Node 20+, npm
 
 ```bash
-ng generate component component-name
+npm install
+npm start    # démarre sur http://localhost:4200/
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Comptes utiles:
+- Admin par défaut: `admin@medinotes.com` / `admin1234`
+- Vous pouvez créer un compte patient via `/auth/inscription`.
 
+Assurez‑vous que le composant racine contient `<router-outlet>` (déjà fait dans `app.component.ts`).
+
+## ✨ Fonctionnalités principales
+
+- Authentification complète (inscription, login, persistance, logout)
+- Autorisation par rôles et Guards (`authGuard`, `adminGuard`)
+- CRUD symptômes (patient): créer, lister, modifier, supprimer
+- Signals + Computed + Effects pour l’état réactif et la persistance
+- Validation réactive des formulaires (validators custom)
+- Pipes et directives custom (`graviteLabel`, `roleLabel`, `appHighlight`)
+- Notifications de succès/erreur + indicateurs de chargement
+- UI responsive (Tailwind), accessibilité de base (ARIA/roles)
+
+## 🧭 Parcours utilisateur
+
+- Patient
+  - Se connecter → bouton “Gérer mes symptômes” (`/symptomes`)
+  - Ajouter/éditer/supprimer un symptôme (validation immédiate)
+  - Les stats par gravité se mettent à jour en temps réel
+- Médecin
+  - Se connecter → bouton “Accéder au suivi” (`/suivi`)
+  - Voir la liste des patients (dérivée des symptômes saisis)
+  - Accéder au détail: `/suivi/patient/:id` (liste des symptômes du patient)
+
+## 🧩 Architecture
+
+Organisation par domaines (DDD simplifié):
+- `src/app/features/` → fonctionnalités (auth, symptomes, accueil)
+- `src/app/shared/` → éléments réutilisables (pipes, directives, validators)
+- `src/app/core/` → services transverses (interceptors, notifications, guards)
+
+Routing:
+- `src/app/app.routes.ts` → routes principales + guards + lazy loading d’auth
+- `src/app/features/auth/auth.routes.ts` → routes d’auth (connexion/inscription)
+
+Entrée de l’app:
+- `src/main.ts` → bootstrap avec `app.config.ts`
+- `src/app/app.component.ts` → layout (header, bouton déconnexion) + `<router-outlet>`
+
+## 🔐 Sécurité & Rôles
+
+- `authGuard` bloque l’accès si non connecté et redirige vers `/auth/connexion` (avec `returnUrl`)
+- `adminGuard` autorise seulement le rôle `medecin`, sinon redirige `/accueil`
+- Navigation conditionnelle selon le rôle dans `AccueilComponent`
+
+## 🗃️ Gestion d’état & Persistance
+
+- Signals:
+  - `AuthService.utilisateurCourant` (session)
+  - `SymptomesService.symptomes` (symptômes globaux)
+- Effects:
+  - Persistance automatique de la session dans `localStorage`
+- Persistance:
+  - Utilisateurs (liste) et symptômes stockés en `localStorage`
+
+## 🧪 Qualité technique
+
+Scripts npm:
 ```bash
-ng generate --help
+npm start       # ng serve
+npm run build  # ng build
+npm test       # ng test (Karma)
+npm run lint   # ng lint (ESLint)
 ```
 
-## Building
+État actuel (référence):
+- Tests: passent ✅
+- Lint: OK ✅
+- Build: OK ✅
 
-To build the project run:
+## 🧰 Détails Techniques clés
 
-```bash
-ng build
-```
+- Authentification: `src/app/features/auth/auth.service.ts`
+  - Persistance de la session par `effect()` → clé `medinotes.utilisateur`
+  - Persistance de la liste des utilisateurs → clé `medinotes.utilisateurs`
+  - Déconnexion: reset du signal + redirection immédiate vers `/auth/connexion`
+- Symptômes: `src/app/features/symptomes/symptomes.service.ts`
+  - CRUD complet + stockage `medinotes.symptomes`
+  - `computed()` pour stats patient côté UI
+- UI & UX:
+  - Tailwind pour le responsive (`src/styles.css`, `tailwind.config.js`)
+  - Notifications via `core/notifications`
+  - Accessibilité: attributs ARIA de base
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## 🔎 Démo guidée 
 
-## Running unit tests
+1) Authentification (inscription, login OK/KO, persistance, logout)
+2) Guards & rôles (authGuard, adminGuard, menu dynamique)
+3) Métier (CRUD symptômes, validations temps réel, pipes, directives)
+4) État & performance (signals/computed/effect, loading states)
+5) UI & Accessibilité (responsive, feedback clair)
+6) Qualité (console propre, tests, lint, build)
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
 
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Projet pédagogique. Utilisation libre à des fins d’apprentissage.
