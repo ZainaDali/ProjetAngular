@@ -34,7 +34,7 @@ import { TestApiService } from '../../core/services/test-api.service';
         </div>
 
         <!-- Stats link (connected) -->
-        <div>
+        <div *ngIf="!auth.estMedecin()">
           <a routerLink="/stats"
              class="inline-block px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
             Voir mes statistiques 📊
