@@ -2,9 +2,14 @@ import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SymptomesService } from '../symptomes/symptomes.service';
 import { AuthService } from '../auth/auth.service';
-import { GravitePipe } from '../../shared/pipes/gravite.pipe';
 
-type JourData = { dateKey: string; date: Date; leger: number; modere: number; grave: number };
+interface JourData {
+  dateKey: string;
+  date: Date;
+  leger: number;
+  modere: number;
+  grave: number;
+}
 
 @Component({
   selector: 'app-stats-dashboard',
@@ -35,7 +40,10 @@ type JourData = { dateKey: string; date: Date; leger: number; modere: number; gr
         <div class="text-sm mb-2">Évolution sur 7 jours (empilé)</div>
         <svg [attr.viewBox]="'0 0 ' + svgWidth + ' ' + svgHeight" class="w-full h-48 border rounded">
           <ng-container *ngFor="let d of parJour(); let i = index">
-            <ng-container [ngTemplateOutlet]="barTemplate" [ngTemplateOutletContext]="{ $implicit: d, i: i, M: safeMax() }"></ng-container>
+            <ng-container
+              [ngTemplateOutlet]="barTemplate"
+              [ngTemplateOutletContext]="{ $implicit: d, i: i, M: safeMax() }">
+            </ng-container>
           </ng-container>
           <!-- Légende couleurs -->
           <g>
@@ -48,22 +56,30 @@ type JourData = { dateKey: string; date: Date; leger: number; modere: number; gr
           </g>
         </svg>
         <ng-template #barTemplate let-d let-i="i" let-M="M">
-          <ng-container>
-            <ng-container>
-              <!-- dimensions -->
-              <ng-container>
-                <svg:g>
-                  <svg:title>{{ d.date | date:'EEE dd/MM' }}</svg:title>
-                  <!-- largeurs/positions -->
-                  <ng-container>
-                    <svg:rect [attr.x]="padding + i * (barWidth + gap)" [attr.y]="yPos(d, 'leger', M)" [attr.width]="barWidth" [attr.height]="h(d.leger, M)" fill="#86efac"></svg:rect>
-                    <svg:rect [attr.x]="padding + i * (barWidth + gap)" [attr.y]="yPos(d, 'modere', M)" [attr.width]="barWidth" [attr.height]="h(d.modere, M)" fill="#fde68a"></svg:rect>
-                    <svg:rect [attr.x]="padding + i * (barWidth + gap)" [attr.y]="yPos(d, 'grave', M)" [attr.width]="barWidth" [attr.height]="h(d.grave, M)" fill="#fca5a5"></svg:rect>
-                  </ng-container>
-                </svg:g>
-              </ng-container>
-            </ng-container>
-          </ng-container>
+          <svg:g>
+            <svg:title>{{ d.date | date:'EEE dd/MM' }}</svg:title>
+            <svg:rect
+              [attr.x]="padding + i * (barWidth + gap)"
+              [attr.y]="yPos(d, 'leger', M)"
+              [attr.width]="barWidth"
+              [attr.height]="h(d.leger, M)"
+              fill="#86efac">
+            </svg:rect>
+            <svg:rect
+              [attr.x]="padding + i * (barWidth + gap)"
+              [attr.y]="yPos(d, 'modere', M)"
+              [attr.width]="barWidth"
+              [attr.height]="h(d.modere, M)"
+              fill="#fde68a">
+            </svg:rect>
+            <svg:rect
+              [attr.x]="padding + i * (barWidth + gap)"
+              [attr.y]="yPos(d, 'grave', M)"
+              [attr.width]="barWidth"
+              [attr.height]="h(d.grave, M)"
+              fill="#fca5a5">
+            </svg:rect>
+          </svg:g>
         </ng-template>
       </div>
     </div>
@@ -89,9 +105,9 @@ export class StatsDashboardComponent {
   });
 
   // 7 derniers jours (inclus aujourd'hui)
-  parJour = computed<ReadonlyArray<JourData>>(() => {
+  parJour = computed<readonly JourData[]>(() => {
     const today = new Date();
-    today.setHours(0,0,0,0);
+    today.setHours(0, 0, 0, 0);
     const days: JourData[] = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date(today);
@@ -112,14 +128,13 @@ export class StatsDashboardComponent {
   });
 
   resume = computed(() => {
-    const base = { leger: 0, modere: 0, grave: 0 } as const;
     const acc: { leger: number; modere: number; grave: number } = { leger: 0, modere: 0, grave: 0 };
     for (const d of this.parJour()) {
       acc.leger += d.leger;
       acc.modere += d.modere;
       acc.grave += d.grave;
     }
-    return { ...base, ...acc };
+    return acc;
   });
 
   maxJour = computed(() => {
@@ -135,13 +150,13 @@ export class StatsDashboardComponent {
     return this.svgHeight - this.padding * 2 - 20; // marge pour la légende
   }
 
-  h(value: number, M: number): number { // hauteur d'un segment
+  h(value: number, M: number): number {
     if (M === 0) return 0;
     return (value / M) * this.innerHeight();
   }
 
   yPos(d: JourData, part: 'leger' | 'modere' | 'grave', M: number): number {
-    const baseY = this.svgHeight - this.padding; // bas du graphe
+    const baseY = this.svgHeight - this.padding;
     const hLeger = this.h(d.leger, M);
     const hModere = this.h(d.modere, M);
     const hGrave = this.h(d.grave, M);
@@ -164,5 +179,3 @@ export class StatsDashboardComponent {
     return `${y}-${m}-${day}`;
   }
 }
-
-

@@ -18,42 +18,50 @@ import { motDePasseValidator } from '../../shared/validators/motdepasse.validato
         <div>
           <label for="nom" class="block text-sm font-medium mb-1">Nom</label>
           <input type="text" formControlName="nom" class="w-full border px-3 py-2 rounded" />
-          <div class="text-red-600 text-sm mt-1"
-               *ngIf="form.controls.nom.touched && form.controls.nom.errors?.['required']">
-            Name is required.
-          </div>
+          @if (form.controls.nom.touched && form.controls.nom.errors?.['required']) {
+            <div class="text-red-600 text-sm mt-1">Name is required.</div>
+          }
         </div>
 
         <!-- Email -->
         <div>
           <label for="email" class="block text-sm font-medium mb-1">Email</label>
           <input type="email" formControlName="email" class="w-full border px-3 py-2 rounded" />
-          <div class="text-red-600 text-sm mt-1"
-               *ngIf="form.controls.email.touched && form.controls.email.errors">
-            <span *ngIf="form.controls.email.errors['required']">Email is required.</span>
-            <span *ngIf="form.controls.email.errors['email']">Invalid email.</span>
-          </div>
+          @if (form.controls.email.touched && form.controls.email.errors) {
+            <div class="text-red-600 text-sm mt-1">
+              @if (form.controls.email.errors['required']) {
+                <span>Email is required.</span>
+              }
+              @if (form.controls.email.errors['email']) {
+                <span>Invalid email.</span>
+              }
+            </div>
+          }
         </div>
 
         <!-- Password -->
         <div>
           <label for="mdp" class="block text-sm font-medium mb-1">Mot de passe</label>
           <input type="password" formControlName="motDePasse" class="w-full border px-3 py-2 rounded" />
-          <div class="text-red-600 text-sm mt-1"
-               *ngIf="form.controls.motDePasse.touched && form.controls.motDePasse.errors">
-            <span *ngIf="form.controls.motDePasse.errors['required']">Password is required.</span>
-            <span *ngIf="form.controls.motDePasse.errors['minlength']">Minimum 6 characters.</span>
-          </div>
+          @if (form.controls.motDePasse.touched && form.controls.motDePasse.errors) {
+            <div class="text-red-600 text-sm mt-1">
+              @if (form.controls.motDePasse.errors['required']) {
+                <span>Password is required.</span>
+              }
+              @if (form.controls.motDePasse.errors['minlength']) {
+                <span>Minimum 6 characters.</span>
+              }
+            </div>
+          }
         </div>
 
         <!-- Confirmation -->
         <div>
           <label for="confmdp" class="block text-sm font-medium mb-1">Confirmer le mot de passe</label>
           <input type="password" formControlName="confirmation" class="w-full border px-3 py-2 rounded" />
-          <div class="text-red-600 text-sm mt-1"
-               *ngIf="form.hasError('motDePasseMismatch') && form.controls.confirmation.touched">
-            Passwords do not match.
-          </div>
+          @if (form.hasError('motDePasseMismatch') && form.controls.confirmation.touched) {
+            <div class="text-red-600 text-sm mt-1">Passwords do not match.</div>
+          }
         </div>
 
         <!-- Role -->
@@ -92,17 +100,16 @@ export class RegisterComponent {
   );
 
   onSubmit() {
-  if (this.form.invalid) return;
+    if (this.form.invalid) return;
 
-  this.auth.inscrire({
-    nom: this.form.value.nom!,
-    email: this.form.value.email!,
-    motDePasse: this.form.value.motDePasse!,
-    confirmation: this.form.value.confirmation!,
-    role: this.form.value.role as 'patient' | 'medecin'
-  });
+    this.auth.inscrire({
+      nom: this.form.value.nom!,
+      email: this.form.value.email!,
+      motDePasse: this.form.value.motDePasse!,
+      confirmation: this.form.value.confirmation!,
+      role: this.form.value.role as 'patient' | 'medecin'
+    });
 
-  this.router.navigate(['/auth/connexion']);
-}
-
+    this.router.navigate(['/auth/connexion']);
+  }
 }

@@ -1,34 +1,35 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, ActivatedRoute, RouterLink } from '@angular/router'; // 👈 ajout RouterLink
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from './auth.service';
 
 @Component({
   selector: 'app-connexion',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink], // 👈 ajout RouterLink ici
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   template: `
     <div class="max-w-md mx-auto mt-10 p-6 bg-white shadow rounded">
       <h2 class="text-2xl font-semibold mb-4">Connexion</h2>
 
       <form [formGroup]="form" (ngSubmit)="soumettre()" class="space-y-4">
+        
         <!-- Champ e-mail -->
         <div>
           <label for="email" class="block text-sm font-medium mb-1">E-mail</label>
           <input type="email" formControlName="email" class="w-full border px-3 py-2 rounded" />
-          <p *ngIf="form.get('email')?.invalid && form.get('email')?.touched" class="text-red-600 text-sm">
-            E-mail invalide
-          </p>
+          @if (form.get('email')?.invalid && form.get('email')?.touched) {
+            <p class="text-red-600 text-sm">E-mail invalide</p>
+          }
         </div>
 
         <!-- Champ mot de passe -->
         <div>
           <label for="mdp" class="block text-sm font-medium mb-1">Mot de passe</label>
           <input type="password" formControlName="motDePasse" class="w-full border px-3 py-2 rounded" />
-          <p *ngIf="form.get('motDePasse')?.invalid && form.get('motDePasse')?.touched" class="text-red-600 text-sm">
-            Mot de passe requis
-          </p>
+          @if (form.get('motDePasse')?.invalid && form.get('motDePasse')?.touched) {
+            <p class="text-red-600 text-sm">Mot de passe requis</p>
+          }
         </div>
 
         <!-- Bouton connexion -->
@@ -46,7 +47,9 @@ import { AuthService } from './auth.service';
         </p>
 
         <!-- Messages d’erreur -->
-        <p *ngIf="erreur()" class="text-red-600 text-sm mt-2">{{ erreur() }}</p>
+        @if (erreur()) {
+          <p class="text-red-600 text-sm mt-2">{{ erreur() }}</p>
+        }
       </form>
     </div>
   `

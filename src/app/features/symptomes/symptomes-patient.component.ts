@@ -42,15 +42,16 @@ import { SymptomeItemComponent } from './symptome-item.component';
           <label for="description" class="block text-sm font-medium mb-1">Description</label>
           <input type="text" formControlName="description"
                  class="w-full border px-3 py-2 rounded" />
-          <div class="text-red-600 text-sm mt-1"
-               *ngIf="form.controls.description.touched && form.controls.description.errors">
-            <span *ngIf="form.controls.description.errors['required']">
-              La description est obligatoire.
-            </span>
-            <span *ngIf="form.controls.description.errors['tropCourt']">
-              La description doit contenir au moins 5 caractères.
-            </span>
-          </div>
+          @if (form.controls.description.touched && form.controls.description.errors) {
+            <div class="text-red-600 text-sm mt-1">
+              @if (form.controls.description.errors['required']) {
+                <span>La description est obligatoire.</span>
+              }
+              @if (form.controls.description.errors['tropCourt']) {
+                <span>La description doit contenir au moins 5 caractères.</span>
+              }
+            </div>
+          }
         </div>
 
         <div>
@@ -70,12 +71,13 @@ import { SymptomeItemComponent } from './symptome-item.component';
 
       <!-- List -->
       <ul class="mt-6 space-y-3">
-        <app-symptome-item
-          *ngFor="let s of mesSymptomes(); trackBy: trackById"
-          [symptome]="s"
-          (supprimer)="supprimer($event)"
-          (editer)="editer($event)">
-        </app-symptome-item>
+        @for (s of mesSymptomes(); track s.id) {
+          <app-symptome-item
+            [symptome]="s"
+            (supprimer)="supprimer($event)"
+            (editer)="editer($event)">
+          </app-symptome-item>
+        }
       </ul>
     </div>
   `
@@ -109,7 +111,6 @@ export class SymptomesPatientComponent {
     if (this.form.invalid || !this.auth.utilisateurCourant()) return;
 
     if (this.symptomeEnEdition) {
-      // Update
       this.symptomesService.modifier(this.symptomeEnEdition.id, {
         description: this.form.value.description!,
         gravite: this.form.value.gravite! as 'leger' | 'modere' | 'grave'
@@ -117,7 +118,6 @@ export class SymptomesPatientComponent {
       this.notif.succes('Symptôme mis à jour.');
       this.symptomeEnEdition = null;
     } else {
-      // Add
       this.symptomesService.ajouter({
         id: Date.now(),
         patientId: this.userId,
@@ -149,7 +149,6 @@ export class SymptomesPatientComponent {
   trackById = (_: number, s: { id: number }) => s.id;
 
   constructor() {
-    // Affiche des notifications patient pour nouvelles notes du médecin
     const events = this.patientNotif.nonLusPour(this.userId);
     for (const e of events) {
       this.notif.info(e.message);

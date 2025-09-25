@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { SymptomesService } from './symptomes.service';
 import { PatientNotificationsService } from '../../core/services/patient-notifications.service';
+import { Symptome } from './symptome.model';
 
 describe('SymptomesService', () => {
   let service: SymptomesService;
@@ -8,7 +9,10 @@ describe('SymptomesService', () => {
 
   beforeEach(() => {
     localStorage.clear();
-    notifSpy = jasmine.createSpyObj<PatientNotificationsService>('PatientNotificationsService', ['push']);
+    notifSpy = jasmine.createSpyObj<PatientNotificationsService>(
+      'PatientNotificationsService',
+      ['push']
+    );
     TestBed.configureTestingModule({
       providers: [
         { provide: PatientNotificationsService, useValue: notifSpy },
@@ -18,8 +22,16 @@ describe('SymptomesService', () => {
     service = TestBed.inject(SymptomesService);
   });
 
-  function creerSymptome(id: number, patientId = 1) {
-    return { id, patientId, description: 'desc ' + id, gravite: 'leger', date: new Date().toISOString() } as any;
+  function creerSymptome(id: number, patientId = 1): Symptome {
+    return {
+      id,
+      patientId,
+      patientNom: 'Patient ' + patientId, // ✅ ajouté pour respecter le modèle
+      description: 'desc ' + id,
+      gravite: 'leger',
+      date: new Date().toISOString(),
+      notes: []
+    };
   }
 
   it('ajouter persiste et liste', () => {
@@ -74,5 +86,3 @@ describe('SymptomesService', () => {
     expect(res[0].patientId).toBe(2);
   });
 });
-
-
