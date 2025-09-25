@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { SymptomesService } from './symptomes.service';
 import { AuthService } from '../auth/auth.service';
 import { NotificationsService } from '../../core/notifications/notifications.service';
+import { PatientNotificationsService } from '../../core/services/patient-notifications.service';
 import { descriptionValidator } from '../../shared/validators/description.validator';
 import { SymptomeItemComponent } from './symptome-item.component';
 
@@ -84,6 +85,7 @@ export class SymptomesPatientComponent {
   symptomesService = inject(SymptomesService);
   auth = inject(AuthService);
   notif = inject(NotificationsService);
+  patientNotif = inject(PatientNotificationsService);
 
   userId = this.auth.utilisateurCourant()?.id ?? 0;
   symptomeEnEdition: { id: number } | null = null;
@@ -139,9 +141,21 @@ export class SymptomesPatientComponent {
   }
 
   supprimer(id: number) {
+    if (!confirm('Confirmer la suppression de ce symptôme ?')) return;
     this.symptomesService.supprimer(id);
     this.notif.info('Symptôme supprimé.');
   }
 
   trackById = (_: number, s: { id: number }) => s.id;
+
+  constructor() {
+    // Affiche des notifications patient pour nouvelles notes du médecin
+    const events = this.patientNotif.nonLusPour(this.userId);
+    for (const e of events) {
+      this.notif.info(e.message);
+    }
+    if (events.length) {
+      this.patientNotif.marquerCommeLus(this.userId);
+    }
+  }
 }

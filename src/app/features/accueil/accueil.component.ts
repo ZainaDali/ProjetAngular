@@ -33,6 +33,14 @@ import { TestApiService } from '../../core/services/test-api.service';
           </a>
         </div>
 
+        <!-- Stats link (connected) -->
+        <div>
+          <a routerLink="/stats"
+             class="inline-block px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+            Voir mes statistiques 📊
+          </a>
+        </div>
+
         <!-- API test button -->
         <div class="mt-6">
           <button (click)="testerErreur()"

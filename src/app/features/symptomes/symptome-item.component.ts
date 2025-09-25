@@ -13,6 +13,14 @@ import { Symptome } from './symptome.model';
       <div class="font-medium">
         {{ symptome.description }} — <span>{{ symptome.gravite | graviteLabel }}</span>
       </div>
+      <div *ngIf="symptome.notes?.length" class="mt-2 text-sm">
+        <div class="font-semibold">Notes du médecin</div>
+        <ul class="list-disc list-inside space-y-1">
+          <li *ngFor="let n of symptome.notes">
+            <span class="text-gray-600 text-xs">{{ n.date | date:'short' }}</span> — {{ n.contenu }}
+          </li>
+        </ul>
+      </div>
       <div class="flex gap-3 mt-2">
         <button class="text-blue-600 hover:underline" (click)="editer.emit(symptome)">
           Modifier

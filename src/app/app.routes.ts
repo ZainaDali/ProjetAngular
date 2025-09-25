@@ -5,6 +5,7 @@ import { adminGuard } from './core/guards/admin.guard';
 import { SymptomesPatientComponent } from './features/symptomes/symptomes-patient.component';
 import { SymptomesMedecinComponent } from './features/symptomes/symptomes-medecin.component';
 import { SymptomesAdminDetailComponent } from './features/symptomes/symptomes-admin-detail.component';
+import { StatsDashboardComponent } from './features/stats/stats-dashboard.component';
 
 export const routes: Routes = [
   // Default redirection
@@ -24,6 +25,9 @@ export const routes: Routes = [
 
   // Doctor space → detail by patient
   { path: 'suivi/patient/:id', component: SymptomesAdminDetailComponent, canActivate: [adminGuard] },
+
+  // Stats (accessible connecté)
+  { path: 'stats', component: StatsDashboardComponent, canActivate: [authGuard] },
 
   // Fallback route
   { path: '**', redirectTo: 'accueil' }
